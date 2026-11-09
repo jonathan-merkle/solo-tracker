@@ -35,7 +35,7 @@ def record_play_dialog(game):
 
         result = st.selectbox(
             "Result",
-            ["Win", "Loss"]
+            ["Win", "Loss", "N/A"]
         )
 
         score = st.number_input(
