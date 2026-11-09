@@ -1,6 +1,44 @@
 import streamlit as st
 from supabase import create_client
 
+@st.dialog("Record Play")
+def record_play_dialog(game):
+
+    with st.form(f"play_form_{game['id']}"):
+
+        st.subheader(game["game_name"])
+
+        play_date = st.date_input("Play Date")
+
+        result = st.selectbox(
+            "Result",
+            ["Win", "Loss"]
+        )
+
+        score = st.number_input(
+            "Score",
+            value=0,
+            step=1
+        )
+
+        play_notes = st.text_area("Notes")
+
+        save_play = st.form_submit_button("Save Play")
+
+        if save_play:
+
+            supabase.table("plays").insert({
+                "game_id": game["id"],
+                "play_date": str(play_date),
+                "result": result,
+                "score": int(score),
+                "notes": play_notes
+            }).execute()
+
+            st.success("Play recorded!")
+            st.rerun()
+
+
 # --------------------------------------------------
 # Page Configuration
 # --------------------------------------------------
@@ -146,46 +184,9 @@ else:
                     # Record Play
                     # ----------------------------------
 
-                    with st.expander("➕ Record Play"):
-
-                        with st.form(f"play_form_{game['id']}"):
-
-                            play_date = st.date_input(
-                                "Play Date",
-                                key=f"play_date_{game['id']}"
-                            )
-
-                            result = st.selectbox(
-                                "Result",
-                                ["Win", "Loss", "N/A"],
-                                key=f"result_{game['id']}"
-                            )
-
-                            score = st.number_input(
-                                "Score",
-                                value=0,
-                                step=1,
-                                key=f"score_{game['id']}"
-                            )
-
-                            play_notes = st.text_area(
-                                "Notes",
-                                key=f"play_notes_{game['id']}"
-                            )
-
-                            save_play = st.form_submit_button(
-                                "Save Play"
-                            )
-
-                            if save_play:
-
-                                supabase.table("plays").insert({
-                                    "game_id": game["id"],
-                                    "play_date": str(play_date),
-                                    "result": result,
-                                    "score": int(score),
-                                    "notes": play_notes
-                                }).execute()
-
-                                st.success("Play recorded!")
-                                st.rerun()
+                    if st.button(
+    "➕ Record Play",
+    key=f"record_play_{game['id']}",
+    use_container_width=True
+):
+    record_play_dialog(game)
