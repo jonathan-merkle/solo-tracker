@@ -178,10 +178,14 @@ else:
 
                     try:
                         if game.get("image_url"):
-                            st.image(
-                                game["image_url"],
-                                use_container_width=True
-                            )
+                        
+                            img_col1, img_col2, img_col3 = st.columns([1, 2, 1])
+                        
+                            with img_col2:
+                                st.image(
+                                    game["image_url"],
+                                    width=160
+                                )
                     except Exception:
                         pass
 
