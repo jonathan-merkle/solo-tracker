@@ -1,6 +1,8 @@
 import streamlit as st
-import pandas as pd
 from supabase import create_client
+
+# Page configuration
+st.set_page_config(page_title="Solo Tracker", page_icon="🎲")
 
 # Connect to Supabase
 supabase = create_client(
@@ -8,8 +10,7 @@ supabase = create_client(
     st.secrets["SUPABASE_KEY"]
 )
 
-st.set_page_config(page_title="Solo Tracker", page_icon="🎲")
-
+# Title
 st.title("🎲 Solo Tracker")
 
 # Add New Game
@@ -47,33 +48,43 @@ response = (
 
 games = response.data
 
+# Collection Section
 st.header("My Collection")
 
 if not games:
     st.info("No games found.")
 else:
 
-    for game in games:
+    cols_per_row = 3
 
-        st.subheader(game["game_name"])
+    for i in range(0, len(games), cols_per_row):
 
-        cols = st.columns(2)
+        row_cols = st.columns(cols_per_row)
 
-        if game.get("spreadsheet_url"):
-            with cols[0]:
-                st.link_button(
-                    "📊 Spreadsheet",
-                    game["spreadsheet_url"]
-                )
+        for col, game in zip(row_cols, games[i:i + cols_per_row]):
 
-        if game.get("bgg_url"):
-            with cols[1]:
-                st.link_button(
-                    "🎲 BoardGameGeek",
-                    game["bgg_url"]
-                )
+            with col:
 
-        if game.get("notes"):
-            st.write(game["notes"])
+                with st.container(border=True):
 
-        st.divider()
+                    st.subheader(game["game_name"])
+
+                    if game.get("notes"):
+                        preview = game["notes"][:100]
+                        if len(game["notes"]) > 100:
+                            preview += "..."
+                        st.caption(preview)
+
+                    if game.get("spreadsheet_url"):
+                        st.link_button(
+                            "📊 Spreadsheet",
+                            game["spreadsheet_url"],
+                            use_container_width=True
+                        )
+
+                    if game.get("bgg_url"):
+                        st.link_button(
+                            "🎲 BoardGameGeek",
+                            game["bgg_url"],
+                            use_container_width=True
+                        )
