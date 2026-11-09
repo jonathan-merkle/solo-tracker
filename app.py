@@ -1,19 +1,35 @@
 import streamlit as st
 from supabase import create_client
 
-# Page configuration
-st.set_page_config(page_title="Solo Tracker", page_icon="🎲")
+# --------------------------------------------------
+# Page Configuration
+# --------------------------------------------------
 
-# Connect to Supabase
+st.set_page_config(
+    page_title="Solo Tracker",
+    page_icon="🎲",
+    layout="wide"
+)
+
+# --------------------------------------------------
+# Supabase Connection
+# --------------------------------------------------
+
 supabase = create_client(
     st.secrets["SUPABASE_URL"],
     st.secrets["SUPABASE_KEY"]
 )
 
+# --------------------------------------------------
 # Title
+# --------------------------------------------------
+
 st.title("🎲 Solo Tracker")
 
+# --------------------------------------------------
 # Add New Game
+# --------------------------------------------------
+
 with st.expander("Add Game"):
 
     with st.form("new_game"):
@@ -37,8 +53,11 @@ with st.expander("Add Game"):
             st.success("Game added successfully")
             st.rerun()
 
+# --------------------------------------------------
 # Load Games
-response = (
+# --------------------------------------------------
+
+games_response = (
     supabase
     .table("games")
     .select("*")
@@ -46,13 +65,37 @@ response = (
     .execute()
 )
 
-games = response.data
+games = games_response.data or []
 
-# Collection Section
+# --------------------------------------------------
+# Load Plays
+# --------------------------------------------------
+
+plays_response = (
+    supabase
+    .table("plays")
+    .select("game_id")
+    .execute()
+)
+
+plays = plays_response.data or []
+
+play_counts = {}
+
+for play in plays:
+    game_id = play["game_id"]
+    play_counts[game_id] = play_counts.get(game_id, 0) + 1
+
+# --------------------------------------------------
+# Collection
+# --------------------------------------------------
+
 st.header("My Collection")
 
 if not games:
+
     st.info("No games found.")
+
 else:
 
     cols_per_row = 3
@@ -69,13 +112,22 @@ else:
 
                     st.subheader(game["game_name"])
 
+                    st.metric(
+                        "Plays",
+                        play_counts.get(game["id"], 0)
+                    )
+
                     if game.get("notes"):
+
                         preview = game["notes"][:100]
+
                         if len(game["notes"]) > 100:
                             preview += "..."
+
                         st.caption(preview)
 
                     if game.get("spreadsheet_url"):
+
                         st.link_button(
                             "📊 Spreadsheet",
                             game["spreadsheet_url"],
@@ -83,13 +135,17 @@ else:
                         )
 
                     if game.get("bgg_url"):
+
                         st.link_button(
                             "🎲 BoardGameGeek",
                             game["bgg_url"],
                             use_container_width=True
                         )
 
-                    # Record Play Section
+                    # ----------------------------------
+                    # Record Play
+                    # ----------------------------------
+
                     with st.expander("➕ Record Play"):
 
                         with st.form(f"play_form_{game['id']}"):
@@ -101,7 +157,7 @@ else:
 
                             result = st.selectbox(
                                 "Result",
-                                ["Win", "Loss"],
+                                ["Win", "Loss", "N/A"],
                                 key=f"result_{game['id']}"
                             )
 
@@ -114,7 +170,7 @@ else:
 
                             play_notes = st.text_area(
                                 "Notes",
-                                key=f"notes_{game['id']}"
+                                key=f"play_notes_{game['id']}"
                             )
 
                             save_play = st.form_submit_button(
