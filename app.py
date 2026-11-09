@@ -35,7 +35,7 @@ def record_play_dialog(game):
 
         result = st.selectbox(
             "Result",
-            ["Win", "Loss", "N/A"]
+            ["Win", "Loss"]
         )
 
         score = st.number_input(
@@ -78,6 +78,7 @@ with st.expander("Add Game"):
         game_name = st.text_input("Game Name")
         spreadsheet_url = st.text_input("Google Spreadsheet URL")
         bgg_url = st.text_input("BoardGameGeek URL")
+        image_url = st.text_input("Image URL")
         notes = st.text_area("Notes")
 
         save = st.form_submit_button("Save Game")
@@ -88,6 +89,7 @@ with st.expander("Add Game"):
                 "game_name": game_name,
                 "spreadsheet_url": spreadsheet_url,
                 "bgg_url": bgg_url,
+                "image_url": image_url,
                 "notes": notes
             }).execute()
 
@@ -115,17 +117,36 @@ games = games_response.data or []
 plays_response = (
     supabase
     .table("plays")
-    .select("game_id")
+    .select("*")
     .execute()
 )
 
 plays = plays_response.data or []
 
+# --------------------------------------------------
+# Build Statistics
+# --------------------------------------------------
+
 play_counts = {}
+last_played = {}
 
 for play in plays:
+
     game_id = play["game_id"]
-    play_counts[game_id] = play_counts.get(game_id, 0) + 1
+
+    play_counts[game_id] = (
+        play_counts.get(game_id, 0) + 1
+    )
+
+    play_date = play.get("play_date")
+
+    if play_date:
+
+        if (
+            game_id not in last_played or
+            play_date > last_played[game_id]
+        ):
+            last_played[game_id] = play_date
 
 # --------------------------------------------------
 # Collection
@@ -151,21 +172,52 @@ else:
 
                 with st.container(border=True):
 
+                    # ------------------------------
+                    # Cover Image
+                    # ------------------------------
+
                     try:
                         if game.get("image_url"):
                             st.image(
                                 game["image_url"],
                                 use_container_width=True
                             )
-                    except:
+                    except Exception:
                         pass
-                
+
+                    # ------------------------------
+                    # Game Name
+                    # ------------------------------
+
                     st.subheader(game["game_name"])
 
-                    st.metric(
-                        "Plays",
-                        play_counts.get(game["id"], 0)
-                    )
+                    # ------------------------------
+                    # Statistics
+                    # ------------------------------
+
+                    metric_col1, metric_col2 = st.columns(2)
+
+                    with metric_col1:
+                        st.metric(
+                            "Plays",
+                            play_counts.get(
+                                game["id"],
+                                0
+                            )
+                        )
+
+                    with metric_col2:
+                        st.metric(
+                            "Last Played",
+                            last_played.get(
+                                game["id"],
+                                "Never"
+                            )
+                        )
+
+                    # ------------------------------
+                    # Notes
+                    # ------------------------------
 
                     if game.get("notes"):
 
@@ -175,6 +227,10 @@ else:
                             preview += "..."
 
                         st.caption(preview)
+
+                    # ------------------------------
+                    # Links
+                    # ------------------------------
 
                     if game.get("spreadsheet_url"):
 
@@ -191,6 +247,10 @@ else:
                             game["bgg_url"],
                             use_container_width=True
                         )
+
+                    # ------------------------------
+                    # Record Play Button
+                    # ------------------------------
 
                     if st.button(
                         "➕ Record Play",
