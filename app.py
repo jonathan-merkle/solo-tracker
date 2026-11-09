@@ -151,11 +151,14 @@ else:
 
                 with st.container(border=True):
 
-                    if game.get("image_url"):
-                        st.image(
-                            game["image_url"],
-                            use_container_width=True
-                        )
+                    try:
+                        if game.get("image_url"):
+                            st.image(
+                                game["image_url"],
+                                use_container_width=True
+                            )
+                    except:
+                        pass
                 
                     st.subheader(game["game_name"])
 
