@@ -151,6 +151,12 @@ else:
 
                 with st.container(border=True):
 
+                    if game.get("image_url"):
+                        st.image(
+                            game["image_url"],
+                            use_container_width=True
+                        )
+                
                     st.subheader(game["game_name"])
 
                     st.metric(
