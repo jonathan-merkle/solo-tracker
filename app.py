@@ -1,6 +1,29 @@
 import streamlit as st
 from supabase import create_client
 
+# --------------------------------------------------
+# Page Configuration
+# --------------------------------------------------
+
+st.set_page_config(
+    page_title="Solo Tracker",
+    page_icon="🎲",
+    layout="wide"
+)
+
+# --------------------------------------------------
+# Supabase Connection
+# --------------------------------------------------
+
+supabase = create_client(
+    st.secrets["SUPABASE_URL"],
+    st.secrets["SUPABASE_KEY"]
+)
+
+# --------------------------------------------------
+# Record Play Dialog
+# --------------------------------------------------
+
 @st.dialog("Record Play")
 def record_play_dialog(game):
 
@@ -37,26 +60,6 @@ def record_play_dialog(game):
 
             st.success("Play recorded!")
             st.rerun()
-
-
-# --------------------------------------------------
-# Page Configuration
-# --------------------------------------------------
-
-st.set_page_config(
-    page_title="Solo Tracker",
-    page_icon="🎲",
-    layout="wide"
-)
-
-# --------------------------------------------------
-# Supabase Connection
-# --------------------------------------------------
-
-supabase = create_client(
-    st.secrets["SUPABASE_URL"],
-    st.secrets["SUPABASE_KEY"]
-)
 
 # --------------------------------------------------
 # Title
@@ -180,13 +183,9 @@ else:
                             use_container_width=True
                         )
 
-                    # ----------------------------------
-                    # Record Play
-                    # ----------------------------------
-
                     if st.button(
-    "➕ Record Play",
-    key=f"record_play_{game['id']}",
-    use_container_width=True
-):
-    record_play_dialog(game)
+                        "➕ Record Play",
+                        key=f"record_play_{game['id']}",
+                        use_container_width=True
+                    ):
+                        record_play_dialog(game)
