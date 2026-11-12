@@ -110,6 +110,20 @@ games_response = (
 
 games = games_response.data or []
 
+# Create a lookup dictionary for convenience
+games_dict = {str(game["id"]): game for game in games}
+
+# --------------------------------------------------
+# Check URL for Auto-Opening Dialog
+# --------------------------------------------------
+
+# Check if 'record_play' exists in the URL query parameters (e.g., ?record_play=123)
+requested_game_id = st.query_params.get("record_play")
+
+if requested_game_id and requested_game_id in games_dict:
+    # Automatically trigger the dialog for this game on load
+    record_play_dialog(games_dict[requested_game_id])
+
 # --------------------------------------------------
 # Load Plays
 # --------------------------------------------------
