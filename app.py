@@ -117,11 +117,9 @@ games_dict = {str(game["id"]): game for game in games}
 # Check URL for Auto-Opening Dialog
 # --------------------------------------------------
 
-# Check if 'record_play' exists in the URL query parameters (e.g., ?record_play=123)
 requested_game_id = st.query_params.get("record_play")
 
 if requested_game_id and requested_game_id in games_dict:
-    # Automatically trigger the dialog for this game on load
     record_play_dialog(games_dict[requested_game_id])
 
 # --------------------------------------------------
@@ -252,11 +250,36 @@ else:
 
                     if game.get("spreadsheet_url"):
 
-                        st.link_button(
-                            "📊 Spreadsheet",
-                            game["spreadsheet_url"],
-                            use_container_width=True
-                        )
+                        # Split into a wider column for the link button and a narrow column for the copy button
+                        btn_col, copy_col = st.columns([5, 1])
+
+                        with btn_col:
+                            st.link_button(
+                                "📊 Spreadsheet",
+                                game["spreadsheet_url"],
+                                use_container_width=True
+                            )
+
+                        with copy_col:
+                            direct_url = f"https://solo-tracker.streamlit.app/?record_play={game['id']}"
+                            
+                            st.components.v1.html(f"""
+                                <div style="display: flex; align-items: center; justify-content: center; height: 38px;">
+                                    <button onclick="navigator.clipboard.writeText('{direct_url}'); this.innerText='✅';" title="Copy Direct Record Play Link" style="
+                                        width: 100%;
+                                        height: 38px;
+                                        background-color: transparent;
+                                        border: 1px solid rgba(49, 51, 63, 0.2);
+                                        border-radius: 4px;
+                                        cursor: pointer;
+                                        font-size: 1rem;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        transition: background-color 0.2s;
+                                    ">📋</button>
+                                </div>
+                            """, height=45)
 
                     if game.get("bgg_url"):
 
