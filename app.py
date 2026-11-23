@@ -68,6 +68,13 @@ def record_play_dialog(game):
 st.title("🎲 Solo Tracker")
 
 # --------------------------------------------------
+# Search
+# --------------------------------------------------
+
+search_query = st.text_input("🔍 Search games", placeholder="Type a game name and press Enter...", key="game_search")
+search_query = search_query.strip().lower()
+
+# --------------------------------------------------
 # Add New Game
 # --------------------------------------------------
 
@@ -128,14 +135,25 @@ if requested_game_id and requested_game_id in games_dict:
 # Load Plays
 # --------------------------------------------------
 
-plays_response = (
-    supabase
-    .table("plays")
-    .select("*")
-    .execute()
-)
+plays = []
+page_size = 1000
+offset = 0
 
-plays = plays_response.data or []
+# Supabase caps each request (default 1000 rows), so page through all plays
+while True:
+    batch = (
+        supabase
+        .table("plays")
+        .select("game_id, play_date")
+        .order("id")
+        .range(offset, offset + page_size - 1)
+        .execute()
+        .data
+    ) or []
+    plays.extend(batch)
+    if len(batch) < page_size:
+        break
+    offset += page_size
 
 # --------------------------------------------------
 # Build Statistics
@@ -146,7 +164,7 @@ last_played = {}
 
 for play in plays:
 
-    game_id = play["game_id"]
+    game_id = str(play["game_id"])
 
     play_counts[game_id] = (
         play_counts.get(game_id, 0) + 1
@@ -163,10 +181,41 @@ for play in plays:
             last_played[game_id] = play_date
 
 # --------------------------------------------------
+# Plays Per Month (last 12 months)
+# --------------------------------------------------
+
+import pandas as pd
+from datetime import date
+
+today = date.today()
+months = []
+y, m = today.year, today.month
+for _ in range(12):
+    months.append(f"{y}-{m:02d}")
+    m -= 1
+    if m == 0:
+        y, m = y - 1, 12
+months.reverse()
+
+monthly_counts = {key: 0 for key in months}
+for play in plays:
+    key = (play.get("play_date") or "")[:7]
+    if key in monthly_counts:
+        monthly_counts[key] += 1
+
+st.header("Plays Per Month")
+st.bar_chart(
+    pd.DataFrame({"Plays": list(monthly_counts.values())}, index=months)
+)
+
+# --------------------------------------------------
 # Collection
 # --------------------------------------------------
 
 st.header("My Collection")
+
+if search_query:
+    games = [g for g in games if search_query in g["game_name"].lower()]
 
 if not games:
 
@@ -219,7 +268,7 @@ else:
                         st.metric(
                             "Plays",
                             play_counts.get(
-                                game["id"],
+                                str(game["id"]),
                                 0
                             )
                         )
@@ -228,7 +277,7 @@ else:
                         st.metric(
                             "Last Played",
                             last_played.get(
-                                game["id"],
+                                str(game["id"]),
                                 "Never"
                             )
                         )
