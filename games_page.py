@@ -116,18 +116,43 @@ else:
 
                 with st.container(border=True):
 
-                    try:
-                        if game.get("image_url"):
+                    img_col, btn_col = st.columns([2, 1])
 
-                            img_col1, img_col2, img_col3 = st.columns([1, 2, 1])
-
-                            with img_col2:
+                    with img_col:
+                        try:
+                            if game.get("image_url"):
                                 st.image(
                                     game["image_url"],
                                     width=160
                                 )
-                    except Exception:
-                        pass
+                        except Exception:
+                            pass
+
+                    with btn_col:
+                        if game.get("spreadsheet_url"):
+                            st.link_button(
+                                "📊",
+                                game["spreadsheet_url"],
+                                help="Open spreadsheet",
+                                use_container_width=True
+                            )
+
+                        if game.get("bgg_url"):
+                            st.markdown(
+                                f'<a href="{game["bgg_url"]}" target="_blank" title="BoardGameGeek" '
+                                'style="display:flex;align-items:center;justify-content:center;'
+                                'height:38px;border:1px solid rgba(128,128,128,0.4);border-radius:8px;">'
+                                '<img src="https://boardgamegeek.com/favicon.ico" width="20" height="20"></a>',
+                                unsafe_allow_html=True
+                            )
+
+                        if st.button(
+                            "➕",
+                            key=f"record_play_{game['id']}",
+                            help="Record play",
+                            use_container_width=True
+                        ):
+                            record_play_dialog(game)
 
                     st.subheader(game["game_name"])
 
@@ -190,33 +215,3 @@ else:
                             preview += "..."
 
                         st.caption(preview)
-
-                    btn_cols = st.columns(3)
-
-                    with btn_cols[0]:
-                        if game.get("spreadsheet_url"):
-                            st.link_button(
-                                "📊",
-                                game["spreadsheet_url"],
-                                help="Open spreadsheet",
-                                use_container_width=True
-                            )
-
-                    with btn_cols[1]:
-                        if game.get("bgg_url"):
-                            st.markdown(
-                                f'<a href="{game["bgg_url"]}" target="_blank" title="BoardGameGeek" '
-                                'style="display:flex;align-items:center;justify-content:center;'
-                                'height:38px;border:1px solid rgba(128,128,128,0.4);border-radius:8px;">'
-                                '<img src="https://boardgamegeek.com/favicon.ico" width="20" height="20"></a>',
-                                unsafe_allow_html=True
-                            )
-
-                    with btn_cols[2]:
-                        if st.button(
-                            "➕",
-                            key=f"record_play_{game['id']}",
-                            help="Record play",
-                            use_container_width=True
-                        ):
-                            record_play_dialog(game)
