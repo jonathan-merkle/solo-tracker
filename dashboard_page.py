@@ -11,13 +11,13 @@ games_dict = {str(game["id"]): game for game in load_games()}
 plays = load_plays()
 
 # --------------------------------------------------
-# Plays Per Month (last 12 months)
+# Plays Per Month (last 24 months)
 # --------------------------------------------------
 
 today = date.today()
 months = []
 y, m = today.year, today.month
-for _ in range(12):
+for _ in range(24):
     months.append(f"{y}-{m:02d}")
     m -= 1
     if m == 0:
@@ -36,7 +36,7 @@ st.bar_chart(
 )
 
 # --------------------------------------------------
-# Minutes Played by Month (last 12 months)
+# Minutes Played by Month (last 24 months)
 # --------------------------------------------------
 
 minutes_by_month = {key: 0 for key in months}
@@ -46,32 +46,10 @@ for play in plays:
     if key in minutes_by_month and game:
         minutes_by_month[key] += game.get("average_play_time_min") or 0
 
-minutes_rows = [
-    {"Month": key, "Minutes": mins}
-    for key, mins in minutes_by_month.items()
-    if mins > 0
-]
-
-st.header("Minutes Played by Month (Last 12 Months)")
-
-if minutes_rows:
-    st.vega_lite_chart(
-        pd.DataFrame(minutes_rows),
-        {
-            "mark": {"type": "arc", "tooltip": True},
-            "encoding": {
-                "theta": {"field": "Minutes", "type": "quantitative", "stack": True},
-                "color": {"field": "Month", "type": "nominal", "sort": months},
-                "tooltip": [
-                    {"field": "Month", "type": "nominal"},
-                    {"field": "Minutes", "type": "quantitative"},
-                ],
-            },
-        },
-        use_container_width=True,
-    )
-else:
-    st.info("No play time recorded in the last 12 months.")
+st.header("Minutes Played by Month (Last 24 Months)")
+st.bar_chart(
+    pd.DataFrame({"Minutes": list(minutes_by_month.values())}, index=months)
+)
 
 # --------------------------------------------------
 # Plays by Game (last 3 months)
