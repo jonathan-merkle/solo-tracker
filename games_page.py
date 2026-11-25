@@ -11,8 +11,14 @@ st.title("🎲 Solo Tracker")
 # Search
 # --------------------------------------------------
 
-search_query = st.text_input("🔍 Search games", placeholder="Type a game name and press Enter...", key="game_search")
-search_query = search_query.strip().lower()
+search_col, sort_col = st.columns([3, 1])
+
+with search_col:
+    search_query = st.text_input("🔍 Search games", placeholder="Type a game name and press Enter...", key="game_search")
+    search_query = search_query.strip().lower()
+
+with sort_col:
+    sort_option = st.selectbox("Sort by", ["Name", "Last Played"], key="game_sort")
 
 # --------------------------------------------------
 # Add New Game
@@ -99,6 +105,14 @@ st.header("My Collection")
 
 if search_query:
     games = [g for g in games if search_query in g["game_name"].lower()]
+
+if sort_option == "Last Played":
+    # Never-played games go to the bottom
+    games = sorted(
+        games,
+        key=lambda g: last_played.get(str(g["id"]), date.min),
+        reverse=True
+    )
 
 if not games:
 
