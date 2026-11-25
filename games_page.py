@@ -23,6 +23,12 @@ with st.expander("Add Game"):
         spreadsheet_url = st.text_input("Google Spreadsheet URL")
         bgg_url = st.text_input("BoardGameGeek URL")
         image_url = st.text_input("Image URL")
+        avg_play_time = st.number_input(
+            "Average Play Time (minutes)",
+            min_value=0,
+            value=0,
+            step=5
+        )
         notes = st.text_area("Notes")
 
         save = st.form_submit_button("Save Game")
@@ -34,6 +40,7 @@ with st.expander("Add Game"):
                 "spreadsheet_url": spreadsheet_url,
                 "bgg_url": bgg_url,
                 "image_url": image_url,
+                "average_play_time_min": int(avg_play_time),
                 "notes": notes
             }).execute()
 
@@ -119,7 +126,7 @@ else:
 
                     st.subheader(game["game_name"])
 
-                    metric_col1, metric_col2 = st.columns(2)
+                    metric_col1, metric_col2, metric_col3 = st.columns(3)
 
                     with metric_col1:
                         st.metric(
@@ -128,6 +135,17 @@ else:
                         )
 
                     with metric_col2:
+                        total_min = (
+                            play_counts.get(str(game["id"]), 0)
+                            * (game.get("average_play_time_min") or 0)
+                        )
+                        hours, minutes = divmod(int(total_min), 60)
+                        st.metric(
+                            "Total Time",
+                            f"{hours}h {minutes}m" if hours else f"{minutes}m"
+                        )
+
+                    with metric_col3:
                         st.metric(
                             "Last Played",
                             last_played.get(str(game["id"]), "Never")
@@ -152,27 +170,6 @@ else:
                                 game["spreadsheet_url"],
                                 use_container_width=True
                             )
-
-                        with copy_col:
-                            direct_url = f"https://solo-tracker.streamlit.app/?record_play={game['id']}"
-
-                            st.components.v1.html(f"""
-                                <div style="display: flex; align-items: center; justify-content: center; margin: 0; padding: 0;">
-                                    <button onclick="navigator.clipboard.writeText('{direct_url}'); this.innerText='✅';" title="Copy Direct Record Play Link" style="
-                                        width: 100%;
-                                        height: 38px;
-                                        background-color: rgb(255, 255, 255);
-                                        border: 1px solid rgba(49, 51, 63, 0.2);
-                                        border-radius: 4px;
-                                        cursor: pointer;
-                                        font-size: 1rem;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        transition: background-color 0.2s;
-                                    ">📋</button>
-                                </div>
-                            """, height=38)
 
                     if game.get("bgg_url"):
 
