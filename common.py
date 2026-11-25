@@ -34,7 +34,7 @@ def load_plays():
         batch = (
             supabase
             .table("plays")
-            .select("game_id, play_date")
+            .select("game_id, play_date, result")
             .order("id")
             .range(offset, offset + page_size - 1)
             .execute()
