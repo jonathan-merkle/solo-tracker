@@ -125,3 +125,42 @@ if pie_rows:
     )
 else:
     st.info("No plays recorded yet.")
+
+# --------------------------------------------------
+# Game Rankings (all-time)
+# --------------------------------------------------
+
+ranking_rows = [
+    {
+        "Game": game["game_name"],
+        "Plays": play_counts.get(gid, 0),
+        "Minutes": play_counts.get(gid, 0) * (game.get("average_play_time_min") or 0),
+    }
+    for gid, game in games_dict.items()
+    if play_counts.get(gid, 0) > 0
+]
+
+
+def ranking_chart(rows, field, title):
+    st.header(title)
+    st.vega_lite_chart(
+        pd.DataFrame(rows),
+        {
+            "height": {"step": 24},
+            "mark": {"type": "bar", "tooltip": True},
+            "encoding": {
+                "y": {"field": "Game", "type": "nominal", "sort": "-x", "title": None},
+                "x": {"field": field, "type": "quantitative"},
+                "tooltip": [
+                    {"field": "Game", "type": "nominal"},
+                    {"field": field, "type": "quantitative"},
+                ],
+            },
+        },
+        use_container_width=True,
+    )
+
+
+if ranking_rows:
+    ranking_chart(ranking_rows, "Plays", "Games Ranked by Total Plays")
+    ranking_chart(ranking_rows, "Minutes", "Games Ranked by Total Play Time (Minutes)")
