@@ -191,28 +191,32 @@ else:
 
                         st.caption(preview)
 
-                    if game.get("spreadsheet_url"):
+                    btn_cols = st.columns(3)
 
-                        btn_col, copy_col = st.columns([5, 1])
-
-                        with btn_col:
+                    with btn_cols[0]:
+                        if game.get("spreadsheet_url"):
                             st.link_button(
-                                "📊 Spreadsheet",
+                                "📊",
                                 game["spreadsheet_url"],
+                                help="Open spreadsheet",
                                 use_container_width=True
                             )
 
-                    if game.get("bgg_url"):
+                    with btn_cols[1]:
+                        if game.get("bgg_url"):
+                            st.markdown(
+                                f'<a href="{game["bgg_url"]}" target="_blank" title="BoardGameGeek" '
+                                'style="display:flex;align-items:center;justify-content:center;'
+                                'height:38px;border:1px solid rgba(128,128,128,0.4);border-radius:8px;">'
+                                '<img src="https://boardgamegeek.com/favicon.ico" width="20" height="20"></a>',
+                                unsafe_allow_html=True
+                            )
 
-                        st.link_button(
-                            "🎲 BoardGameGeek",
-                            game["bgg_url"],
+                    with btn_cols[2]:
+                        if st.button(
+                            "➕",
+                            key=f"record_play_{game['id']}",
+                            help="Record play",
                             use_container_width=True
-                        )
-
-                    if st.button(
-                        "➕ Record Play",
-                        key=f"record_play_{game['id']}",
-                        use_container_width=True
-                    ):
-                        record_play_dialog(game)
+                        ):
+                            record_play_dialog(game)
