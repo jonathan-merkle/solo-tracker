@@ -36,6 +36,82 @@ st.bar_chart(
 )
 
 # --------------------------------------------------
+# Minutes Played by Month (last 12 months)
+# --------------------------------------------------
+
+minutes_by_month = {key: 0 for key in months}
+for play in plays:
+    key = (play.get("play_date") or "")[:7]
+    game = games_dict.get(str(play["game_id"]))
+    if key in minutes_by_month and game:
+        minutes_by_month[key] += game.get("average_play_time_min") or 0
+
+minutes_rows = [
+    {"Month": key, "Minutes": mins}
+    for key, mins in minutes_by_month.items()
+    if mins > 0
+]
+
+st.header("Minutes Played by Month (Last 12 Months)")
+
+if minutes_rows:
+    st.vega_lite_chart(
+        pd.DataFrame(minutes_rows),
+        {
+            "mark": {"type": "arc", "tooltip": True},
+            "encoding": {
+                "theta": {"field": "Minutes", "type": "quantitative", "stack": True},
+                "color": {"field": "Month", "type": "nominal", "sort": months},
+                "tooltip": [
+                    {"field": "Month", "type": "nominal"},
+                    {"field": "Minutes", "type": "quantitative"},
+                ],
+            },
+        },
+        use_container_width=True,
+    )
+else:
+    st.info("No play time recorded in the last 12 months.")
+
+# --------------------------------------------------
+# Plays by Game (last 3 months)
+# --------------------------------------------------
+
+cutoff_month = months[-3]
+recent_counts = {}
+for play in plays:
+    if (play.get("play_date") or "")[:7] >= cutoff_month:
+        game_id = str(play["game_id"])
+        recent_counts[game_id] = recent_counts.get(game_id, 0) + 1
+
+recent_rows = [
+    {"Game": games_dict[gid]["game_name"], "Plays": count}
+    for gid, count in sorted(recent_counts.items(), key=lambda item: item[1], reverse=True)
+    if gid in games_dict
+]
+
+st.header("Plays by Game (Last 3 Months)")
+
+if recent_rows:
+    st.vega_lite_chart(
+        pd.DataFrame(recent_rows),
+        {
+            "mark": {"type": "arc", "tooltip": True},
+            "encoding": {
+                "theta": {"field": "Plays", "type": "quantitative", "stack": True},
+                "color": {"field": "Game", "type": "nominal", "sort": {"field": "Plays", "order": "descending"}},
+                "tooltip": [
+                    {"field": "Game", "type": "nominal"},
+                    {"field": "Plays", "type": "quantitative"},
+                ],
+            },
+        },
+        use_container_width=True,
+    )
+else:
+    st.info("No plays recorded in the last 3 months.")
+
+# --------------------------------------------------
 # Share of Plays (top 50 games)
 # --------------------------------------------------
 
