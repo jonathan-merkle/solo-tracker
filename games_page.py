@@ -7,6 +7,29 @@ from common import supabase, load_games, load_plays, record_play_dialog
 
 st.title("🎲 Solo Tracker")
 
+# Keep the image + buttons row side by side on mobile (Streamlit stacks columns by default)
+st.markdown(
+    """
+    <style>
+    [data-testid="stElementContainer"]:has(.keep-row) { display: none; }
+    div[data-testid="stHorizontalBlock"]:has(.keep-row) {
+        flex-wrap: nowrap !important;
+    }
+    div[data-testid="stHorizontalBlock"]:has(.keep-row) > div[data-testid="stColumn"] {
+        min-width: 0 !important;
+        width: auto !important;
+    }
+    div[data-testid="stHorizontalBlock"]:has(.keep-row) > div[data-testid="stColumn"]:first-child {
+        flex: 2 1 0 !important;
+    }
+    div[data-testid="stHorizontalBlock"]:has(.keep-row) > div[data-testid="stColumn"]:last-child {
+        flex: 1 1 0 !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # --------------------------------------------------
 # Search
 # --------------------------------------------------
@@ -135,6 +158,7 @@ else:
                     img_col, btn_col = st.columns([2, 1])
 
                     with img_col:
+                        st.markdown('<span class="keep-row"></span>', unsafe_allow_html=True)
                         try:
                             if game.get("image_url"):
                                 st.image(
