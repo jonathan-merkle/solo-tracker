@@ -151,10 +151,23 @@ else:
                         )
 
                     with metric_col3:
-                        st.metric(
-                            "Last Played",
-                            last_played.get(str(game["id"]), "Never")
-                        )
+                        last = last_played.get(str(game["id"]))
+                        if last:
+                            days = (date.today() - date.fromisoformat(last[:10])).days
+                            if days <= 0:
+                                label = "Today"
+                            elif days < 14:
+                                label = f"{days}d ago"
+                            elif days < 60:
+                                label = f"{days // 7}w ago"
+                            elif days < 365:
+                                label = f"{days // 30}mo ago"
+                            else:
+                                label = f"{days / 365.25:.1f}y ago"
+                            icon = "🟢" if days <= 30 else "🟡" if days <= 180 else "🔴"
+                            st.metric("Last Played", f"{icon} {label}", help=last[:10])
+                        else:
+                            st.metric("Last Played", "Never")
 
                     gid = str(game["id"])
                     if gid in first_played:
