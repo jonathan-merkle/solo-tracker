@@ -12,17 +12,17 @@ st.markdown(
     """
     <style>
     [data-testid="stElementContainer"]:has(.keep-row) { display: none; }
-    div[data-testid="stHorizontalBlock"]:has(.keep-row) {
+    div[data-testid="stHorizontalBlock"]:has(.keep-row):not(:has(div[data-testid="stHorizontalBlock"])) {
         flex-wrap: nowrap !important;
     }
-    div[data-testid="stHorizontalBlock"]:has(.keep-row) > div[data-testid="stColumn"] {
+    div[data-testid="stHorizontalBlock"]:has(.keep-row):not(:has(div[data-testid="stHorizontalBlock"])) > div[data-testid="stColumn"] {
         min-width: 0 !important;
         width: auto !important;
     }
-    div[data-testid="stHorizontalBlock"]:has(.keep-row) > div[data-testid="stColumn"]:first-child {
+    div[data-testid="stHorizontalBlock"]:has(.keep-row):not(:has(div[data-testid="stHorizontalBlock"])) > div[data-testid="stColumn"]:first-child {
         flex: 2 1 0 !important;
     }
-    div[data-testid="stHorizontalBlock"]:has(.keep-row) > div[data-testid="stColumn"]:last-child {
+    div[data-testid="stHorizontalBlock"]:has(.keep-row):not(:has(div[data-testid="stHorizontalBlock"])) > div[data-testid="stColumn"]:last-child {
         flex: 1 1 0 !important;
     }
     </style>
