@@ -18,7 +18,7 @@ with search_col:
     search_query = search_query.strip().lower()
 
 with sort_col:
-    sort_option = st.selectbox("Sort by", ["Name", "Last Played"], key="game_sort")
+    sort_option = st.selectbox("Sort by", ["Last Played", "Name"], key="game_sort")
 
 # --------------------------------------------------
 # Add New Game
