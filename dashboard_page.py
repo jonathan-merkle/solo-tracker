@@ -164,3 +164,51 @@ def ranking_chart(rows, field, title):
 if ranking_rows:
     ranking_chart(ranking_rows, "Plays", "Games Ranked by Total Plays")
     ranking_chart(ranking_rows, "Minutes", "Games Ranked by Total Play Time (Minutes)")
+
+# --------------------------------------------------
+# Win Percentage (games with win/loss results only)
+# --------------------------------------------------
+
+win_loss = {}
+for play in plays:
+    result = (play.get("result") or "").strip().lower()
+    if result in ("win", "loss", "lose"):
+        stats = win_loss.setdefault(str(play["game_id"]), {"wins": 0, "total": 0})
+        stats["total"] += 1
+        if result == "win":
+            stats["wins"] += 1
+
+win_rows = [
+    {
+        "Game": games_dict[gid]["game_name"],
+        "Win %": round(stats["wins"] / stats["total"] * 100, 1),
+        "Wins": stats["wins"],
+        "Games": stats["total"],
+    }
+    for gid, stats in win_loss.items()
+    if gid in games_dict
+]
+
+st.header("Win Percentage by Game")
+
+if win_rows:
+    st.vega_lite_chart(
+        pd.DataFrame(win_rows),
+        {
+            "height": {"step": 24},
+            "mark": {"type": "bar", "tooltip": True},
+            "encoding": {
+                "y": {"field": "Game", "type": "nominal", "sort": "-x", "title": None},
+                "x": {"field": "Win %", "type": "quantitative", "scale": {"domain": [0, 100]}},
+                "tooltip": [
+                    {"field": "Game", "type": "nominal"},
+                    {"field": "Win %", "type": "quantitative"},
+                    {"field": "Wins", "type": "quantitative"},
+                    {"field": "Games", "type": "quantitative"},
+                ],
+            },
+        },
+        use_container_width=True,
+    )
+else:
+    st.info("No plays with win/loss results yet.")
