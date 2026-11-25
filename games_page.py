@@ -1,5 +1,6 @@
 from datetime import date
 
+import pandas as pd
 import streamlit as st
 
 from common import supabase, load_games, load_plays, record_play_dialog
@@ -81,9 +82,10 @@ for play in plays:
 
     play_counts[game_id] = play_counts.get(game_id, 0) + 1
 
-    play_date = play.get("play_date")
+    play_date = pd.to_datetime(play.get("play_date"), errors="coerce")
 
-    if play_date:
+    if pd.notna(play_date):
+        play_date = play_date.date()
         if game_id not in last_played or play_date > last_played[game_id]:
             last_played[game_id] = play_date
         if game_id not in first_played or play_date < first_played[game_id]:
@@ -178,7 +180,7 @@ else:
                     with metric_col3:
                         last = last_played.get(str(game["id"]))
                         if last:
-                            days = (date.today() - date.fromisoformat(last[:10])).days
+                            days = (date.today() - last).days
                             if days <= 0:
                                 label = "Today"
                             elif days < 14:
@@ -190,15 +192,14 @@ else:
                             else:
                                 label = f"{days / 365.25:.1f}y ago"
                             icon = "🟢" if days <= 30 else "🟡" if days <= 180 else "🔴"
-                            st.metric("Last Played", f"{icon} {label}", help=last[:10])
+                            st.metric("Last Played", f"{icon} {label}", help=last.isoformat())
                         else:
                             st.metric("Last Played", "Never")
 
                     gid = str(game["id"])
                     if gid in first_played:
                         span_days = (
-                            date.fromisoformat(last_played[gid][:10])
-                            - date.fromisoformat(first_played[gid][:10])
+                            last_played[gid] - first_played[gid]
                         ).days
                         years = span_days / 365.25
                         st.caption(
