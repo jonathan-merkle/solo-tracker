@@ -156,7 +156,7 @@ else:
 
                     st.subheader(game["game_name"])
 
-                    metric_col1, metric_col2, metric_col3 = st.columns(3)
+                    metric_col1, metric_col2, metric_col3 = st.columns([2, 3, 4])
 
                     with metric_col1:
                         st.metric(
