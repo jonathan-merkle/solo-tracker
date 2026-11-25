@@ -1,3 +1,5 @@
+from datetime import date
+
 import streamlit as st
 
 from common import supabase, load_games, load_plays, record_play_dialog
@@ -71,6 +73,7 @@ if requested_game_id and requested_game_id in games_dict:
 
 play_counts = {}
 last_played = {}
+first_played = {}
 
 for play in plays:
 
@@ -83,6 +86,8 @@ for play in plays:
     if play_date:
         if game_id not in last_played or play_date > last_played[game_id]:
             last_played[game_id] = play_date
+        if game_id not in first_played or play_date < first_played[game_id]:
+            first_played[game_id] = play_date
 
 # --------------------------------------------------
 # Collection
@@ -149,6 +154,19 @@ else:
                         st.metric(
                             "Last Played",
                             last_played.get(str(game["id"]), "Never")
+                        )
+
+                    gid = str(game["id"])
+                    if gid in first_played:
+                        span_days = (
+                            date.fromisoformat(last_played[gid][:10])
+                            - date.fromisoformat(first_played[gid][:10])
+                        ).days
+                        years = span_days / 365.25
+                        st.caption(
+                            f"Playing for {years:.1f} years"
+                            if years >= 1
+                            else "Playing for less than a year"
                         )
 
                     if game.get("notes"):
